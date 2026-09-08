@@ -1,0 +1,50 @@
+[
+{
+"id": 1,
+"title": "Interstellar",
+"year": 2014,
+"genre": "Sci-Fi"
+},
+{
+"id": 2,
+"title": "Inception",
+"year": 2010,
+"genre": "Sci-Fi"
+},
+{
+"id": 3,
+"title": "The Dark Knight",
+"year": 2008,
+"genre": "Akcja"
+},
+{
+"id": 4,
+"title": "Forrest Gump",
+"year": 1994,
+"genre": "Dramat"
+},
+{
+"id": 5,
+"title": "The Matrix",
+"year": 1999,
+"genre": "Sci-Fi"
+},
+{
+"id": 6,
+"title": "The Hangover",
+"year": 2009,
+"genre": "Komedia"
+},
+{
+"id": 7,
+"title": "Gladiator",
+"year": 2000,
+"genre": "Historyczny"
+},
+{
+"id": 8,
+"title": "Titanic",
+"year": 1997,
+"genre": "Romans"
+}
+]
