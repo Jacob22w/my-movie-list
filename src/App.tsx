@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import MovieCard from "./components/MovieCard";
 import initialMovies from "./data/movies.json";
 import "./App.css";
@@ -22,7 +22,7 @@ function App() {
     }
   };
 
-  const addMovie = (event: FormEvent<HTMLFormElement>) => {
+  const addMovie = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const movieTitle = title.trim();
