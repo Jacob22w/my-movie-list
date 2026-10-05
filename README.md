@@ -1,32 +1,30 @@
-# React + TypeScript + Vite
+# Moja lista filmów
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Aplikacja React + TypeScript do prowadzenia listy filmów. Umożliwia filtrowanie
+filmów według statusu obejrzenia, oznaczanie ich jako obejrzane, ocenianie
+w skali od 1 do 5 gwiazdek oraz dodawanie nowych pozycji.
 
-Currently, two official plugins are available:
+## Dane filmu
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+Filmy początkowe znajdują się w `src/data/movies.json`. Każdy film ma
+identyfikator, tytuł, rok wydania i tablicę gatunków, np.:
 
 ```json
 {
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
+  "id": 1,
+  "title": "Przykładowy film",
+  "year": 2024,
+  "genre": ["Dramat", "Biograficzny"]
 }
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Nowe filmy można dodać za pomocą formularza nad listą. Przycisk `+` dodaje
+kolejne pole gatunku. Oceny, status obejrzenia i nowe filmy są przechowywane
+w stanie aplikacji podczas bieżącej sesji.
+
+## Uruchamianie
+
+- `npm install` — instalacja zależności
+- `npm run dev` — uruchomienie serwera deweloperskiego
+- `npm run build` — sprawdzenie typów i zbudowanie aplikacji
+- `npm run lint` — uruchomienie lintera
