@@ -55,6 +55,11 @@ function App() {
     setRatings((current) => ({ ...current, [id]: rating }));
   };
 
+  const resetMovieProgress = () => {
+    setWatchedMovies([]);
+    setRatings({});
+  };
+
   const filteredMovies = movies.filter((movie) => {
     if (filter === "watched") {
       return watchedMovies.includes(movie.id);
@@ -160,6 +165,14 @@ function App() {
 
         <button onClick={() => setFilter("unwatched")}>
           Nieobejrzane
+        </button>
+
+        <button
+          className="clear-all-button"
+          type="button"
+          onClick={resetMovieProgress}
+        >
+          Wyczyść wszystkie
         </button>
       </div>
 
