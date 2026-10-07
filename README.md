@@ -1,150 +1,276 @@
 # Moja lista filmów
 
-Prosta aplikacja React + TypeScript do przeglądania i prowadzenia listy filmów.
-Dane początkowe są w pliku JSON. Można dodawać filmy, wybierać kilka gatunków,
-oznaczać filmy jako obejrzane, filtrować listę i przyznawać oceny od 1 do 5.
+To jest prosta aplikacja React + TypeScript, która pokazuje listę filmów z pliku JSON,
+pozwala je oznaczać jako obejrzane, dodawać nowe filmy i wystawiać im oceny od 1 do 5.
 
-## Uruchomienie
+## Co robi ta aplikacja
+
+- pokazuje listę filmów z lokalnego pliku `src/data/movies.json`
+- wyświetla licznik: obejrzane / wszystkie
+- pozwala filtrować filmy: wszystkie, obejrzane, nieobejrzane
+- pozwala dodać nowy film przez formularz
+- pozwala zaznaczyć film jako obejrzany
+- pozwala ustawić ocenę dla filmu od 1 do 5 gwiazdek
+- ma przycisk `Wyczyść wszystkie`, który resetuje status obejrzenia i oceny
+
+## Uruchomienie projektu
 
 ```bash
 npm install
 npm run dev
 ```
 
-Przydatne polecenia:
+Dodatkowe polecenia:
 
-- `npm run build` — sprawdza typy TypeScript i buduje aplikację.
-- `npm run lint` — uruchamia Oxlint.
-- `npm run preview` — podgląd zbudowanej aplikacji.
+```bash
+npm run build
+npm run lint
+npm run preview
+```
 
-## Pliki projektu
+## Struktura projektu
 
-- `src/main.tsx` — uruchamia React i renderuje komponent `App`.
-- `src/App.tsx` — główna logika, stan aplikacji, formularz, filtry i lista.
-- `src/components/MovieCard.tsx` — pokazuje szczegóły jednego filmu oraz jego  ocenę i status obejrzenia.
-- `src/types.ts` — typ TypeScript opisujący film.
-- `src/data/movies.json` — początkowa lista filmów.
-- `src/App.css` — style strony, kart, formularza i przycisków.
-- `index.html` — dokument HTML, który zawiera element, w którym React renderuje
-  aplikację.
+- `src/App.tsx` — główny komponent aplikacji, stan, formularz, filtry i lista filmów
+- `src/components/MovieCard.tsx` — pojedyncza karta filmu
+- `src/types.ts` — typ `Movie`
+- `src/data/movies.json` — dane startowe filmów
+- `src/App.css` — style strony
+- `src/main.tsx` — punkt wejścia Reacta
+- `KOD_KROK_PO_KROKU.md` — dokładne, proste wyjaśnienie działania kodu krok po kroku
+- `DOKUMENTACJA_SZCZEGOLOWA.md` — bardziej techniczna dokumentacja projektu
+- `index.html` — plik HTML z elementem `root`
 
-## Dane filmu
+## Typ danych filmu
 
-Każdy film ma identyfikator, tytuł, rok i tablicę gatunków:
+Każdy film ma taki format:
+
+```ts
+type Movie = {
+  id: number;
+  title: string;
+  year: number;
+  genre: string[];
+};
+```
+
+To oznacza:
+
+- `id` — liczba, unikalny identyfikator filmu
+- `title` — tekst, tytuł filmu
+- `year` — liczba, rok produkcji
+- `genre` — tablica tekstów, np. `["Sci-Fi", "Akcja"]`
+
+Tak wygląda przykładowy film w JSON:
 
 ```json
 {
   "id": 1,
-  "title": "Przykładowy film",
-  "year": 2024,
-  "genre": ["Dramat", "Biograficzny"]
+  "title": "Interstellar",
+  "year": 2014,
+  "genre": ["Sci-Fi"]
 }
 ```
 
-Pole `genre` jest tablicą tekstów (`string[]`), dlatego film może należeć do
-więcej niż jednego gatunku. Ten sam format jest używany w JSON, typie `Movie`
-i formularzu.
+## Jak działa `App.tsx`
 
-## Jak działa aplikacja
-
-### Główny komponent `App`
-
-`App` importuje początkowe filmy z `movies.json` i przechowuje je w stanie Reacta.
-Stan jest używany, ponieważ dodanie filmu lub zmiana oceny/statusu ma od razu
-odświeżyć widok.
-
-Główne wartości stanu:
-
-- `movies` — wszystkie filmy, początkowo z JSON.
-- `watchedMovies` — identyfikatory filmów oznaczonych jako obejrzane.
-- `ratings` — oceny zapisane pod identyfikatorami filmów.
-- `filter` — wybrany widok: wszystkie, obejrzane albo nieobejrzane.
-- `title`, `year`, `genres` — aktualne wartości pól formularza.
-- `formError` — komunikat o brakującym tytule lub gatunku.
-
-### Oznaczanie jako obejrzany
-
-Funkcja `toggleWatched` dostaje ID filmu. Jeżeli ID znajduje się już w
-`watchedMovies`, usuwa je. W przeciwnym razie dodaje je do tablicy.
-`MovieCard` otrzymuje status oraz tę funkcję przez props.
-
-### Licznik i filtrowanie
-
-Licznik pokazuje liczbę ID w `watchedMovies` oraz całkowitą liczbę filmów.
-`filteredMovies` tworzy listę do wyświetlenia przy użyciu `.filter()`:
-
-- `all` — pokazuje wszystkie filmy;
-- `watched` — pokazuje ID znajdujące się w `watchedMovies`;
-- `unwatched` — pokazuje pozostałe filmy.
-
-Lista kart jest renderowana przez `.map()`. Każda karta ma `key={movie.id}`,
-żeby React mógł rozróżniać elementy listy.
-
-### Dodawanie filmu
-
-Formularz wywołuje `addMovie` przy wysłaniu. Funkcja:
-
-1. Zapobiega domyślnemu przeładowaniu strony.
-2. Usuwa zbędne spacje z tytułu i gatunków.
-3. Pomija puste gatunki i sprawdza, czy podano tytuł oraz co najmniej jeden
-   gatunek.
-4. Wyznacza nowe ID na podstawie największego ID na liście.
-5. Dodaje film do stanu `movies`.
-6. Czyści pola formularza.
-
-Pola tytułu, roku i gatunków są kontrolowane przez React: ich `value` pochodzi
-ze stanu, a `onChange` aktualizuje stan.
-
-Przycisk `+` dopisuje kolejne wymagane pole do `genres`. Przy wysłaniu
-formularza gatunki są zbierane w tablicę `string[]`.
-
-### Oceny
-
-`ratings` przechowuje ocenę jako liczbę 1–5 pod ID filmu. `MovieCard` wyświetla
-pięć przycisków. Kliknięcie gwiazdki wywołuje `onRate`, a `App` zapisuje ocenę.
-Nieoceniony film ma ocenę `0` w widoku i pokazuje „Brak oceny”.
-
-### Reset statusów i ocen
-
-Przycisk „Wyczyść wszystkie” wywołuje `resetMovieProgress`. Funkcja czyści
-`watchedMovies` i `ratings`. Nie usuwa filmów — po kliknięciu wszystkie są
-nieobejrzane i nie mają ocen.
-
-### Komunikat o braku filmów
-
-Jeżeli aktywny filtr nie zwraca żadnego wyniku, aplikacja wyświetla komunikat
-„Brak filmów do wyświetlenia”.
-
-## Komponent `MovieCard`
-
-Komponent dostaje dane filmu oraz jego stan przez props:
-
-- `title`, `year`, `genre` — dane wyświetlane na karcie;
-- `watched` — informacja, czy film obejrzano;
-- `rating` — ocena od 0 do 5, gdzie 0 oznacza brak oceny;
-- `onToggle` — funkcja wywoływana przy zmianie statusu;
-- `onRate` — funkcja wywoływana po wybraniu oceny.
-
-`genre.join(", ")` zamienia tablicę gatunków na czytelny tekst. Status
-`watched` dodaje klasę CSS, dzięki której obejrzana karta może wyglądać inaczej.
-
-## Typ `FormEvent`
-
-`FormEvent<HTMLFormElement>` określa typ zdarzenia wysłania formularza:
+Najważniejsze elementy to stan Reacta:
 
 ```tsx
-const addMovie = (event: FormEvent<HTMLFormElement>) => {
-  event.preventDefault();
+const [movies, setMovies] = useState<Movie[]>(initialMovies);
+const [watchedMovies, setWatchedMovies] = useState<number[]>([]);
+const [ratings, setRatings] = useState<Record<number, number>>({});
+const [filter, setFilter] = useState("all");
+const [title, setTitle] = useState("");
+const [year, setYear] = useState("");
+const [genres, setGenres] = useState([""]);
+const [formError, setFormError] = useState("");
+```
+
+To są zmienne, które React „zapamiętuje” podczas działania strony.
+
+- `movies` — wszystkie filmy
+- `watchedMovies` — lista ID obejrzanych filmów
+- `ratings` — oceny filmów, zapisane jako obiekt typu `{ [idFilmu]: ocena }`
+- `filter` — aktywny filtr: `all`, `watched`, `unwatched`
+- `title`, `year`, `genres` — dane formularza
+- `formError` — komunikat o błędzie walidacji
+
+### Funkcja `toggleWatched`
+
+```tsx
+const toggleWatched = (id: number) => {
+  if (watchedMovies.includes(id)) {
+    setWatchedMovies((current) => current.filter((movieId) => movieId !== id));
+  } else {
+    setWatchedMovies((current) => [...current, id]);
+  }
 };
 ```
 
-`FormEvent` to typ zdarzenia formularza Reacta. Nie należy mylić go z
-`FormEventHandler` — w zainstalowanych typach Reacta ten drugi jest oznaczony
-jako przestarzały. Jeśli edytor przekreśla `FormEvent`, warto sprawdzić import
-z `react` i uruchomić w VS Code polecenie „TypeScript: Restart TS Server”.
+To sprawdza, czy film jest już oznaczony jako obejrzany:
 
-## Ważna informacja o zapisie
+- jeśli tak — usuwa jego ID z listy
+- jeśli nie — dodaje ID do listy
 
-Nowe filmy, statusy obejrzenia i oceny istnieją w stanie aplikacji tylko
-podczas bieżącego uruchomienia. Nie są zapisywane w JSON ani w przeglądarce.
-Po odświeżeniu strony lista wróci do danych z `src/data/movies.json`.
+### Funkcja `addMovie`
+
+```tsx
+const addMovie = (event: SubmitEvent<HTMLFormElement>) => {
+  event.preventDefault();
+
+  const movieTitle = title.trim();
+  const movieGenres = genres.map((genre) => genre.trim()).filter(Boolean);
+
+  if (!movieTitle || movieGenres.length === 0) {
+    setFormError("Podaj tytuł filmu i co najmniej jeden gatunek.");
+    return;
+  }
+
+  setMovies((current) => {
+    const nextId = Math.max(0, ...current.map((movie) => movie.id)) + 1;
+    return [
+      ...current,
+      {
+        id: nextId,
+        title: movieTitle,
+        year: Number(year),
+        genre: movieGenres,
+      },
+    ];
+  });
+
+  setTitle("");
+  setYear("");
+  setGenres([""]);
+  setFormError("");
+};
+```
+
+Ta funkcja:
+
+1. blokuje domyślne wysłanie formularza
+2. czyści tekst z tytułu i gatunków
+3. sprawdza, czy tytuł nie jest pusty i czy jest przynajmniej jeden gatunek
+4. oblicza nowe ID dla filmu
+5. dodaje nowy obiekt do tablicy `movies`
+6. czyści formularz po dodaniu filmu
+
+### Walidacja formularza
+
+W formularzu są pola:
+
+- `title` — wymagane
+- `year` — wymagane, liczba
+- `genres` — co najmniej jeden niepusty gatunek
+
+Walidacja jest prosta i oparta na warunkach:
+
+```tsx
+if (!movieTitle || movieGenres.length === 0) {
+  setFormError("Podaj tytuł filmu i co najmniej jeden gatunek.");
+  return;
+}
+```
+
+Jeżeli dane są niepoprawne, użytkownik widzi komunikat:
+
+```tsx
+{formError && <p className="form-error" role="alert">{formError}</p>}
+```
+
+### Filtrowanie listy
+
+```tsx
+const filteredMovies = movies.filter((movie) => {
+  if (filter === "watched") {
+    return watchedMovies.includes(movie.id);
+  }
+
+  if (filter === "unwatched") {
+    return !watchedMovies.includes(movie.id);
+  }
+
+  return true;
+});
+```
+
+Tak działa logika filtrów:
+
+- `all` — wszystkie filmy
+- `watched` — tylko obejrzane
+- `unwatched` — tylko nieobejrzane
+
+### Reset statusów
+
+```tsx
+const resetMovieProgress = () => {
+  setWatchedMovies([]);
+  setRatings({});
+};
+```
+
+Przycisk `Wyczyść wszystkie`:
+
+- resetuje listę obejrzanych filmów
+- czyści wszystkie oceny
+- nie usuwa filmów z listy
+
+## Jak działa `MovieCard`
+
+```tsx
+type MovieCardProps = {
+  title: string;
+  year: number;
+  genre: string[];
+  rating: number;
+  watched: boolean;
+  onToggle: () => void;
+  onRate: (rating: number) => void;
+};
+```
+
+Karta filmu dostaje dane przez props:
+
+- `title` — tytuł
+- `year` — rok produkcji
+- `genre` — gatunki
+- `rating` — ocena
+- `watched` — czy film jest obejrzany
+- `onToggle` — funkcja zmieniająca status obejrzenia
+- `onRate` — funkcja zapisująca ocenę
+
+Wewnątrz karty jest renderowana ocena:
+
+```tsx
+{[1, 2, 3, 4, 5].map((value) => (
+  <button key={value} type="button" onClick={() => onRate(value)}>
+    {value <= rating ? "★" : "☆"}
+  </button>
+))}
+```
+
+To tworzy 5 przycisków gwiazdek. Jeżeli `value <= rating`, wyświetla pełną gwiazdkę, a jeśli nie — pustą.
+
+## Dodatkowe informacje
+
+- `FormEvent` użyty w `addMovie` opisuje zdarzenie wysłania formularza
+- `useState` przechowuje dane tylko w pamięci aplikacji podczas działania strony
+- po odświeżeniu strony dane wracają do rozmiaru z `movies.json`
+- aplikacja nie zapisuje danych do lokalnego magazynu przeglądarki ani bazy danych
+
+## Wersja zadania
+
+Projekt spełnia wymagania zadania React + TypeScript:
+
+- React
+- TypeScript
+- komponenty
+- props
+- useState
+- zdarzenia `onClick` / `onSubmit`
+- `.map()`
+- `.filter()`
+- dane z pliku JSON
+- formularz dodawania filmu
+- system ocen
+- filtrowanie listy
