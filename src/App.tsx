@@ -120,7 +120,7 @@ function App() {
             <div className="genre-input-row" key={index}>
               <input
                 type="text"
-                aria-label={`Gatunek ${index + 1}`}
+                aria-label={`Gatunek ${index + 1}`}//czytnik dla niwidomych
                 value={genre}
                 onChange={(event) => {
                   const updatedGenres = [...genres];
