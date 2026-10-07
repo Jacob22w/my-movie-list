@@ -17,14 +17,12 @@ function MovieCard({ title, year, genre, rating, watched, onToggle, onRate }: Mo
 
       <div className="rating">
         <span>Ocena:</span>
-        <div className="rating-stars" role="group" aria-label={`Ocena filmu ${title}`}>
+        <div className="rating-stars">
           {[1, 2, 3, 4, 5].map((value) => (
             <button
               className={value <= rating ? "star-button selected" : "star-button"}
               type="button"
               key={value}
-              aria-label={`Oceń ${title}: ${value} ${value === 1 ? "gwiazdka" : "gwiazdki"}`}
-              aria-pressed={rating === value}
               onClick={() => onRate(value)}
             >
               {value <= rating ? "★" : "☆"}

@@ -95,9 +95,8 @@ Formularz wywołuje `addMovie` przy wysłaniu. Funkcja:
 Pola tytułu, roku i gatunków są kontrolowane przez React: ich `value` pochodzi
 ze stanu, a `onChange` aktualizuje stan.
 
-Przycisk `+` dopisuje kolejne puste pole do `genres`. Przy każdym polu gatunku
-wyświetla się przycisk `−` (poza pierwszym), który usuwa dane pole. Przy
-wysłaniu formularza gatunki są zbierane w tablicę `string[]`.
+Przycisk `+` dopisuje kolejne wymagane pole do `genres`. Przy wysłaniu
+formularza gatunki są zbierane w tablicę `string[]`.
 
 ### Oceny
 

@@ -136,15 +136,6 @@ button:hover {
   font-size: 1.2rem;
 }
 
-.remove-genre-button {
-  background: #405669;
-  color: #f5f1e8;
-}
-
-.remove-genre-button:hover {
-  background: #536b7e;
-}
-
 .filters {
   display: flex;
   flex-wrap: wrap;

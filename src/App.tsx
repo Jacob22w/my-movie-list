@@ -2,7 +2,13 @@ import { useState, type SubmitEvent } from "react";
 import MovieCard from "./components/MovieCard";
 import initialMovies from "./data/movies.json";
 import "./App.css";
-import type { Movie } from "./types";
+
+type Movie = {
+  id: number;
+  title: string;
+  year: number;
+  genre: string[];
+};
 
 function App() {
   const [movies, setMovies] = useState<Movie[]>(initialMovies);
@@ -124,18 +130,6 @@ function App() {
                 }}
                 required
               />
-              {index > 0 && (
-                <button
-                  type="button"
-                  className="remove-genre-button"
-                  aria-label={`Usuń gatunek ${index + 1}`}
-                  onClick={() =>
-                    setGenres((current) => current.filter((_, genreIndex) => genreIndex !== index))
-                  }
-                >
-                  −
-                </button>
-              )}
               {index === genres.length - 1 && (
                 <button
                   type="button"

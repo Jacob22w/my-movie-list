@@ -1,293 +1,1996 @@
-# Szczegółowa dokumentacja projektu
+# React + TypeScript — Dokumentacja
 
-Ten dokument opisuje aktualny kod projektu, jego działanie i walidację danych.
-Numery linii odnoszą się do plików w stanie na dzień utworzenia dokumentacji.
-Puste linie pominięto w opisie. Jeśli kod zostanie zmieniony, numery mogą się
-przesunąć.
+ ## 1\. Co robi aplikacja?
 
-## 1. `src/App.tsx` — główny komponent
+ Aplikacja jest listą filmów.
 
-### Importy i stan: linie 1–15
+ Można w niej:
 
-| Linia | Kod / element | Co robi i dlaczego jest potrzebny |
-|---|---|---|
-| 1 | `useState`, `SubmitEvent` | `useState` pozwala Reactowi zapamiętywać dane i odświeżać widok po ich zmianie. `SubmitEvent` opisuje typ zdarzenia wysłania formularza. |
-| 2 | `MovieCard` | Importuje komponent pojedynczej karty filmu. Dzięki temu główna lista może wielokrotnie użyć tego samego komponentu. |
-| 3 | `initialMovies` | Importuje początkowe dane filmów z lokalnego JSON. |
-| 4 | `App.css` | Dołącza style aplikacji. |
-| 5 | `Movie` | Importuje typ filmu, aby TypeScript sprawdzał zgodność danych. |
-| 7 | `function App()` | Deklaruje główny komponent aplikacji. |
-| 8 | `movies` | Lista filmów. Na początku dostaje dane z JSON; później może zostać uzupełniona przez formularz. |
-| 9 | `watchedMovies` | Tablica ID filmów oznaczonych jako obejrzane. Przechowywane są ID, a nie kopie całych obiektów. |
-| 10 | `ratings` | Obiekt ocen. Klucz to ID filmu, wartość to liczba gwiazdek. |
-| 11 | `filter` | Wybrany filtr: `"all"`, `"watched"` lub `"unwatched"`. |
-| 12 | `title` | Tekst wpisany w polu tytułu. |
-| 13 | `year` | Tekst wpisany w polu roku. Input HTML zwraca tekst; konwersja na liczbę następuje przy zapisie filmu. |
-| 14 | `genres` | Tablica tekstów wpisanych w pola gatunków. Początkowo zawiera jedno puste pole. |
-| 15 | `formError` | Tekst własnego komunikatu walidacyjnego. Pusty tekst oznacza brak błędu. |
+ - wyświetlać filmy,
+- dodawać nowe filmy,
+- dodawać wiele gatunków,
+- oznaczać filmy jako obejrzane,
+- oceniać filmy od 1 do 5,
+- filtrować filmy:
+  - wszystkie,
+  - obejrzane,
+  - nieobejrzane,
+- wyczyścić informacje o obejrzeniu i ocenach.
 
-`useState` zwraca parę: aktualną wartość i funkcję do jej zmiany. Gdy setter
-zmieni stan, React ponownie renderuje komponent.
+ Aplikacja składa się głównie z dwóch komponentów:
 
-### Zmiana statusu obejrzenia: linie 17–23
+```
+App
+ └── MovieCard
+      └── pojedynczy film
+```
 
-| Linia | Co robi |
-|---|---|
-| 17 | Definiuje `toggleWatched`; funkcja otrzymuje ID klikniętego filmu. |
-| 18 | Sprawdza przez `includes`, czy film już jest oznaczony jako obejrzany. |
-| 19 | Jeśli jest, tworzy nową tablicę bez tego ID. `filter` nie zmienia starej tablicy. |
-| 20–22 | Jeśli filmu nie ma w tablicy, dodaje jego ID na końcu. Funkcyjna forma settera korzysta z najnowszego stanu. |
-| 23 | Kończy funkcję. |
+ `App` przechowuje dane i logikę aplikacji.
 
-### Dodawanie filmu i walidacja: linie 25–52
+ `MovieCard` wyświetla pojedynczy film.
 
-| Linia | Co robi i dlaczego |
-|---|---|
-| 25 | Definiuje obsługę wysłania formularza. Typ `SubmitEvent<HTMLFormElement>` mówi TypeScriptowi, że zdarzenie pochodzi z formularza HTML. |
-| 26 | `preventDefault()` blokuje domyślne wysłanie formularza, które przeładowałoby stronę. |
-| 28 | `trim()` usuwa spacje z początku i końca tytułu. |
-| 29 | `map()` czyści spacje w każdym gatunku, a `filter(Boolean)` usuwa puste teksty. Wynikiem jest tablica gotowa do zapisania. |
-| 31 | Waliduje tytuł po `trim()` oraz sprawdza, czy pozostał co najmniej jeden niepusty gatunek. |
-| 32 | Ustawia komunikat, gdy walidacja nie przejdzie. |
-| 33 | `return` przerywa dodawanie — niepoprawny film nie trafia do listy. |
-| 36 | Aktualizuje `movies` na podstawie poprzedniej wartości stanu. |
-| 37 | Wyznacza kolejne ID: największe istniejące ID (albo 0 dla pustej listy) plus 1. |
-| 38–46 | Tworzy nową tablicę, zachowując poprzednie filmy i dopisując nowy obiekt. |
-| 40–45 | Nowy film zawiera `id`, `title`, `year` i `genre`, zgodnie z typem `Movie`. |
-| 43 | `Number(year)` zamienia tekst z inputa na liczbę. Input ma walidację przeglądarki opisaną niżej. |
-| 44 | Zapisuje gatunki jako `string[]`, a nie pojedynczy tekst. |
-| 48–50 | Czyści pola formularza po udanym dodaniu. Tablica gatunków wraca do jednego pustego pola. |
-| 51 | Usuwa ewentualny komunikat błędu po poprawnym dodaniu. |
-| 52 | Kończy funkcję obsługi formularza. |
+---
 
-### Ocena i reset postępu: linie 54–61
+ # 2\. Importy
 
-| Linia | Co robi |
-|---|---|
-| 54 | Definiuje funkcję zapisu oceny dla konkretnego filmu. |
-| 55 | Zachowuje pozostałe oceny i aktualizuje ocenę pod kluczem ID tego filmu. |
-| 58 | Definiuje funkcję przycisku „Wyczyść wszystkie”. |
-| 59 | Czyści tablicę obejrzanych ID, więc wszystkie filmy stają się nieobejrzane. |
-| 60 | Czyści obiekt ocen, więc żaden film nie ma już zapisanej oceny. |
-| 61 | Kończy funkcję. Filmy pozostają w `movies`; przycisk resetuje postęp, a nie usuwa listę. |
+```
+import { useState, type SubmitEvent } from "react";
+import MovieCard from "./components/MovieCard";
+import initialMovies from "./data/movies.json";
+import "./App.css";
+```
 
-### Filtrowanie: linie 63–73
+ ### `useState`
 
-| Linia | Co robi |
-|---|---|
-| 63 | Tworzy `filteredMovies` przez `.filter()`. Ta zmienna jest używana do renderowania listy. |
-| 64–66 | Dla filtra `"watched"` zostawia tylko filmy z ID w `watchedMovies`. |
-| 68–70 | Dla filtra `"unwatched"` zostawia filmy, których ID nie ma w `watchedMovies`. |
-| 72 | Dla `"all"` zwraca `true`, czyli nie odrzuca filmu. |
-| 73 | Kończy filtrowanie. |
+ `useState` służy do przechowywania danych, które mogą się zmieniać.
 
-### Nagłówek i licznik: linie 75–81
+ Przykład:
 
-| Linia | Co robi |
-|---|---|
-| 75 | Rozpoczyna JSX — składnię opisu elementów interfejsu w komponencie React. |
-| 76 | Tworzy główny element strony z klasą CSS `app`. |
-| 77 | Wyświetla tytuł aplikacji. |
-| 79–81 | Pokazuje licznik `liczba obejrzanych / liczba wszystkich`. Licznik obejrzanych pochodzi z długości `watchedMovies`, a wszystkich — z `movies`. |
+```
+const [title, setTitle] = useState("");
+```
 
-### Formularz: linie 83–155
+ Mamy tutaj:
 
-| Linia | Co robi i waliduje |
-|---|---|
-| 83 | Formularz HTML wywołuje `addMovie` przy wysłaniu. |
-| 84 | Nagłówek formularza. |
-| 86–97 | Etykieta i input tytułu. `value` łączy input ze stanem; `onChange` aktualizuje stan. `required` blokuje wysłanie pustej wartości w przeglądarce. |
-| 91–94 | Przy wpisywaniu aktualizuje tytuł i usuwa wcześniejszy komunikat błędu. |
-| 99–109 | Pole roku. Typ `number` ogranicza wprowadzanie do wartości liczbowej; `min="1888"` ustawia najniższy dozwolony rok, `step="1"` wymaga całkowitej wartości, a `required` wymaga podania roku. |
-| 105–106 | Wartość roku jest kontrolowana przez stan `year`; zmiana inputa aktualizuje stan. |
-| 111–112 | `fieldset` i `legend` grupują pola gatunków i nadają im opis. |
-| 113 | `.map()` tworzy wiersz inputa dla każdego elementu stanu `genres`. |
-| 114 | `key={index}` daje Reactowi klucz dla każdego wiersza. Tu użyty jest indeks, bo pola można dynamicznie dodawać i usuwać. |
-| 115–118 | Input gatunku pokazuje odpowiedni tekst ze stanu. `aria-label` nadaje mu nazwę dla czytników ekranu. |
-| 119–124 | Po zmianie tworzy kopię tablicy gatunków, aktualizuje wpisany indeks, zapisuje tablicę w stanie i czyści błąd. |
-| 125 | `required` wymaga wypełnienia tego pola. Jeśli użytkownik doda kolejne pole, ono również jest wymagane, dopóki nie zostanie usunięte. |
-| 127–138 | Dla pól od drugiego wzwyż pokazuje przycisk `−`. Kliknięcie usuwa wybrany indeks przez `filter`. Pierwsze pole nie może być usunięte. |
-| 139–149 | Tylko ostatni wiersz ma przycisk `+`. Kliknięcie dopisuje nowy pusty gatunek do stanu, co powoduje pojawienie się nowego inputa. |
-| 153 | Własny błąd jest renderowany tylko wtedy, gdy `formError` nie jest pusty. `role="alert"` informuje technologie asystujące o komunikacie. |
-| 154 | Przycisk `submit` wysyła formularz. |
-| 155 | Kończy formularz. |
+ - `title` — aktualna wartość,
+- `setTitle` — funkcja zmieniająca wartość,
+- `""` — wartość początkowa.
 
-### Filtry i reset: linie 157–177
+ Jeżeli wykonamy:
 
-| Linia | Co robi |
-|---|---|
-| 157 | Kontener przycisków sterujących listą. |
-| 158–160 | Ustawia filtr `"all"` — pokaż wszystkie filmy. |
-| 162–164 | Ustawia filtr `"watched"` — pokaż obejrzane filmy. |
-| 166–168 | Ustawia filtr `"unwatched"` — pokaż nieobejrzane filmy. |
-| 170–176 | Przycisk resetu. `type="button"` zapobiega przypadkowemu wysłaniu formularza. `onClick` uruchamia `resetMovieProgress`. |
-| 171 | Klasa służy do osobnego stylowania przycisku w CSS. |
-| 175 | Tekst widoczny na przycisku. Pomimo nazwy przycisk nie usuwa filmów. |
-| 177 | Kończy kontener filtrów. |
+```
+setTitle("Avatar");
+```
 
-### Karty oraz pusty wynik: linie 179–201
+ to `title` będzie miało wartość:
 
-| Linia | Co robi |
-|---|---|
-| 179 | Kontener listy filmów. |
-| 180 | `.map()` tworzy widok dla każdego elementu `filteredMovies`. |
-| 181 | Tworzy `MovieCard`. |
-| 182 | `key={movie.id}` daje Reactowi stabilny identyfikator karty w liście. |
-| 183–185 | Przekazuje do karty tytuł, rok i tablicę gatunków. |
-| 186 | Przekazuje ocenę; `?? 0` oznacza, że brak wpisu w `ratings` jest traktowany jako brak oceny. |
-| 187 | Przekazuje informację, czy ID filmu jest w `watchedMovies`. |
-| 188 | Przekazuje funkcję zmiany statusu. |
-| 189 | Przekazuje funkcję zapisu oceny. |
-| 190–192 | Kończą kartę, `.map()` i kontener listy. |
-| 194–196 | Jeżeli filtr nie zwrócił filmów, wyświetla komunikat „Brak filmów do wyświetlenia”. |
-| 197–199 | Kończą element główny, JSX i funkcję komponentu. |
-| 201 | Eksportuje `App`, aby można go było zaimportować w `main.tsx`. |
+```
+"Avatar"
+```
 
-## 2. Walidacja formularza — dokładnie co jest sprawdzane
+---
 
-1. **Tytuł jest wymagany przez HTML** — `required` na linii 95.
-2. **Tytuł nie może składać się wyłącznie ze spacji** — `trim()` w linii 28 i
-   warunek w linii 31 wykrywają pusty tytuł po usunięciu spacji.
-3. **Rok jest wymagany** — `required` na linii 107.
-4. **Rok ma być liczbą całkowitą nie mniejszą niż 1888** — `type="number"`,
-   `min="1888"` i `step="1"` w liniach 101–104. Walidację wykonuje przeglądarka.
-5. **Co najmniej jeden gatunek musi być niepusty** — `trim()` i `filter(Boolean)`
-   w linii 29 usuwają puste gatunki; warunek w linii 31 odrzuca brak gatunków.
-6. **Każde widoczne pole gatunku jest wymagane przez HTML** — `required` w linii
-   125. Dodane, ale niewypełnione pole trzeba wypełnić lub usunąć przyciskiem `−`.
-7. **Puste lub składające się ze spacji gatunki nie są zapisywane** — czyszczenie
-   z linii 29.
+ ### `SubmitEvent`
 
-Walidacja nie sprawdza, czy rok jest wcześniejszy od bieżącego roku, czy tytuł
-jest unikalny, czy gatunki się powtarzają ani czy wpis ma maksymalną długość.
-Takich reguł nie ma w wymaganiach. Atrybuty HTML zapewniają walidację w
-przeglądarce; nie jest to walidacja serwerowa.
+```
+type SubmitEvent
+```
 
-## 3. `src/components/MovieCard.tsx` — pojedynczy film
+ To typ TypeScript opisujący zdarzenie wysłania formularza.
 
-| Linia | Co robi i dlaczego |
-|---|---|
-| 1–9 | `MovieCardProps` określa dane i funkcje otrzymywane przez kartę. `genre` jest `string[]`, `rating` liczbą, `watched` wartością logiczną. Funkcje callback nie zwracają wartości. |
-| 11 | Komponent odbiera wszystkie dane przez props. |
-| 12 | Rozpoczyna zwracany JSX. |
-| 13 | Ustawia klasę `movie-card`; dopisuje `watched`, jeśli film obejrzano, aby CSS mógł wyróżnić kartę. |
-| 14 | Wyświetla tytuł. |
-| 15 | Wyświetla rok. |
-| 16 | `join(", ")` łączy wiele gatunków w jeden czytelny tekst. |
-| 18–19 | Tworzy sekcję oceny z etykietą. |
-| 20 | Grupuje przyciski ocen i zapewnia grupie dostępną nazwę. |
-| 21 | Tworzy pięć przycisków przez `.map()`, po jednym dla każdej oceny 1–5. |
-| 22–31 | Renderuje pojedynczą gwiazdkę. |
-| 23 | Dodaje klasę `selected`, gdy wartość gwiazdki jest nie większa niż aktualna ocena. |
-| 24 | `type="button"` zapobiega wysłaniu formularza, jeśli komponent znalazłby się wewnątrz formularza. |
-| 25 | Klucz Reacta dla elementu listy gwiazdek. |
-| 26 | `aria-label` opisuje przycisk czytnikowi ekranu, podając film i liczbę gwiazdek. |
-| 27 | `aria-pressed` komunikuje, czy ta konkretna ocena jest zaznaczona. |
-| 28 | Po kliknięciu przekazuje wybraną wartość do `App` przez `onRate`. |
-| 30 | Wyświetla pełną gwiazdkę, jeśli jej wartość mieści się w ocenie; w przeciwnym razie pustą. |
-| 34 | Pokazuje `n/5` lub tekst „Brak oceny”. |
-| 37–39 | Przycisk obejrzenia wywołuje `onToggle`; tekst zależy od `watched`. |
-| 40–42 | Kończy element karty i komponent. |
-| 44 | Eksportuje `MovieCard`. |
+```
+const addMovie = (event: SubmitEvent<HTMLFormElement>) => {
+```
 
-## 4. `src/types.ts` — typ filmu
+ Oznacza:
 
-| Linia | Znaczenie |
-|---|---|
-| 1 | Eksportuje deklarację typu `Movie`. |
-| 2 | `id` jest liczbą i identyfikuje film. |
-| 3 | `title` jest tekstem. |
-| 4 | `year` jest liczbą. |
-| 5 | `genre` jest tablicą tekstów; jeden film może mieć kilka gatunków. |
-| 6 | Kończy definicję typu. |
+ > `event` jest zdarzeniem wysłania formularza HTML.
 
-Typ jest używany w stanie `movies`, żeby TypeScript zgłaszał błąd, jeśli
-do listy trafi obiekt o niezgodnym kształcie.
+---
 
-## 5. `src/data/movies.json` — początkowe dane
+ ### `MovieCard`
 
-| Linia / fragment | Znaczenie |
-|---|---|
-| 1 | Rozpoczyna tablicę filmów JSON. |
-| 2–7 | Pierwszy film: ID 1, tytuł, rok i tablica gatunków. |
-| 8–13 | Drugi film: ID 2 i jego dane. |
-| 14–19 | Trzeci film: ID 3 i jego dane. |
-| 20–25 | Czwarty film. Ma dwa gatunki: „Dramat” i „Biograficzny”. |
-| 26–31 | Piąty film. |
-| 32–37 | Szósty film. |
-| 38–43 | Siódmy film. |
-| 44–49 | Ósmy film. |
-| 50 | Kończy tablicę JSON. |
+```
+import MovieCard from "./components/MovieCard";
+```
 
-Każdy element tablicy ma taki sam kształt, jaki opisuje typ `Movie`.
-Identyfikatory początkowych filmów są unikalne.
+ Importujemy własny komponent odpowiedzialny za wyświetlanie jednego filmu.
 
-## 6. `src/main.tsx` — uruchomienie Reacta
+---
 
-| Linia | Znaczenie |
-|---|---|
-| 1 | Importuje `StrictMode`, który pomaga wykrywać problemy w trybie developerskim. |
-| 2 | Importuje `createRoot`, funkcję montującą aplikację React w HTML. |
-| 3 | Importuje główny komponent `App`. |
-| 5 | Znajduje element HTML o ID `root` i tworzy korzeń Reacta. `!` informuje TypeScript, że element istnieje. |
-| 6–8 | Renderuje `App` wewnątrz `StrictMode`. |
-| 9 | Kończy wywołanie renderowania. |
+ ### `initialMovies`
 
-## 7. `index.html` — strona startowa
+```
+import initialMovies from "./data/movies.json";
+```
 
-| Linia | Znaczenie |
-|---|---|
-| 1 | Deklaruje dokument HTML5. |
-| 2 | Ustawia polski jako język strony. |
-| 4 | Ustawia kodowanie UTF-8, potrzebne m.in. dla polskich znaków. |
-| 5 | Wskazuje ikonę strony. |
-| 6 | Ustawia stronę tak, aby poprawnie działała na różnych szerokościach ekranu. |
-| 7 | Ustawia tytuł widoczny na karcie przeglądarki. |
-| 10 | Element `root`, w którym React wyświetla aplikację. |
-| 11 | Ładuje punkt startowy `src/main.tsx`. |
+ Importujemy początkową listę filmów z pliku JSON.
 
-## 8. `src/App.css` — style
+---
 
-CSS opisuje wygląd, nie zmienia danych ani funkcjonalności. Najważniejsze
-sekcje:
+ # 3\. Typ `Movie`
 
-| Linie | Znaczenie |
-|---|---|
-| 1–6 | Podstawowe ustawienia strony: margines, tło, kolor tekstu i font. |
-| 8–12 | Maksymalna szerokość aplikacji, wyśrodkowanie i odstępy od krawędzi. |
-| 14–31 | Duży tytuł oraz dekoracyjna bursztynowa kropka dodana przez `::after`. |
-| 33–38 | Wygląd licznika obejrzanych filmów. |
-| 40–56 | Formularz jako siatka; nagłówek, gatunki i błąd rozciągają się na szerokość formularza. |
-| 58–82 | Nagłówek, etykiety i pola formularza. |
-| 84–105 | Układ dynamicznych pól gatunków i przycisków obok nich. |
-| 107–110 | Kolor komunikatu walidacyjnego. |
-| 112–146 | Ogólny wygląd przycisków, przycisku dodawania oraz usuwania gatunku. |
-| 148–168 | Układ i wygląd przycisków filtrowania. |
-| 170–184 | Wygląd przycisku resetu. Selektor `:disabled` zadziała tylko wtedy, gdy element ma atrybut `disabled`. |
-| 186–190 | Układa karty w trzy kolumny z odstępem. |
-| 192–222 | Tło i obramowanie karty, kolorowy pasek na jej górze oraz wygląd filmu obejrzanego. |
-| 224–235 | Wygląd tytułu i szczegółów filmu. |
-| 237–266 | Układ i wygląd oceny oraz gwiazdek. |
-| 268–272 | Widoczny obrys fokusu dla klawiatury. |
-| 274–288 | Przy szerokości do 800 pikseli lista ma dwie kolumny; formularz zmienia układ. |
-| 290–310 | Przy szerokości do 560 pikseli formularz i filmy przechodzą do jednej kolumny. |
+```
+type Movie = {
+  id: number;
+  title: string;
+  year: number;
+  genre: string[];
+};
+```
 
-## 9. Stan i ograniczenia aplikacji
+ Definiuje, jak wygląda obiekt filmu.
 
-- Filmy, oceny i statusy są przechowywane w `useState`, czyli tylko w pamięci
-  działającej aplikacji. Odświeżenie strony przywraca filmy z JSON i resetuje
-  pozostałe zmiany.
-- Nie ma zapisu do pliku JSON, localStorage ani serwera.
-- Filmy można dodawać, ale interfejs nie ma funkcji usuwania pojedynczego filmu.
-- „Wyczyść wszystkie” oznacza reset obejrzenia i ocen, a nie skasowanie filmów.
-- Oceny i lista obejrzanych filmów są trzymane osobno od obiektów filmów; są
-  powiązane z filmami po ich `id`.
+ Film posiada:
 
-## 10. Polecenia npm
+```
+id      → number
+title   → string
+year    → number
+genre   → string[]
+```
 
-W `package.json` zdefiniowano:
+ Przykład poprawnego filmu:
 
-- `npm run dev` — uruchamia serwer developerski Vite.
-- `npm run build` — sprawdza projekt TypeScriptem, a potem buduje pliki strony.
-- `npm run lint` — uruchamia Oxlint.
-- `npm run preview` — uruchamia podgląd gotowego buildu.
+```
+{
+  id: 1,
+  title: "Interstellar",
+  year: 2014,
+  genre: ["Sci-Fi"]
+}
+```
+
+ `string[]` oznacza:
+
+ > tablica elementów typu `string`.
+
+ Dlatego może być:
+
+```
+genre: ["Dramat", "Biograficzny"]
+```
+
+---
+
+ # 4\. Komponent `App`
+
+```
+function App() {
+```
+
+ `App` jest głównym komponentem aplikacji.
+
+ To tutaj znajduje się większość logiki oraz stan aplikacji.
+
+---
+
+ # 5\. Stan filmów
+
+```
+const [movies, setMovies] = useState<Movie[]>(initialMovies);
+```
+
+ `movies` — aktualna lista filmów.
+
+ `setMovies` — funkcja zmieniająca listę filmów.
+
+ `Movie[]` oznacza:
+
+ > tablica obiektów typu `Movie`.
+
+ `initialMovies` to wartość początkowa.
+
+---
+
+ # 6\. Stan obejrzanych filmów
+
+```
+const [watchedMovies, setWatchedMovies] = useState<number[]>([]);
+```
+
+ Przechowuje ID obejrzanych filmów.
+
+ Na początku:
+
+```
+[]
+```
+
+ czyli żaden film nie jest obejrzany.
+
+ Przykład:
+
+```
+[1, 3, 5]
+```
+
+ oznacza:
+
+```
+film 1 → obejrzany
+film 3 → obejrzany
+film 5 → obejrzany
+```
+
+---
+
+ # 7\. Stan ocen
+
+```
+const [ratings, setRatings] = useState<Record<number, number>>({});
+```
+
+ Przechowuje oceny filmów.
+
+ Przykład:
+
+```
+{
+  1: 5,
+  2: 4,
+  5: 3
+}
+```
+
+ oznacza:
+
+```
+film 1 → 5/5
+film 2 → 4/5
+film 5 → 3/5
+```
+
+ `Record<number, number>` oznacza tutaj obiekt:
+
+```
+ID filmu → ocena
+```
+
+---
+
+ # 8\. Stan filtra
+
+```
+const [filter, setFilter] = useState("all");
+```
+
+ Przechowuje aktualnie wybrany filtr.
+
+ Możliwe wartości:
+
+```
+"all"
+"watched"
+"unwatched"
+```
+
+ Na początku:
+
+```
+filter = "all"
+```
+
+ czyli pokazujemy wszystkie filmy.
+
+---
+
+ # 9\. Stan formularza
+
+ ## Tytuł
+
+```
+const [title, setTitle] = useState("");
+```
+
+ Przechowuje tytuł wpisany przez użytkownika.
+
+---
+
+ ## Rok
+
+```
+const [year, setYear] = useState("");
+```
+
+ Przechowuje rok wpisany w formularzu.
+
+ Jest tutaj `string`, ponieważ wartość pobierana z inputa jest tekstem.
+
+ Później zamieniamy ją na liczbę:
+
+```
+Number(year)
+```
+
+---
+
+ ## Gatunki
+
+```
+const [genres, setGenres] = useState([""]);
+```
+
+ Przechowuje tablicę gatunków.
+
+ Na początku:
+
+```
+[""]
+```
+
+ Po wpisaniu:
+
+```
+["Sci-Fi"]
+```
+
+ Może też być:
+
+```
+["Sci-Fi", "Akcja", "Dramat"]
+```
+
+---
+
+ ## Błąd formularza
+
+```
+const [formError, setFormError] = useState("");
+```
+
+ Przechowuje komunikat błędu.
+
+ Na początku:
+
+```
+""
+```
+
+ Jeżeli użytkownik poda niepoprawne dane:
+
+```
+setFormError("Podaj tytuł filmu i co najmniej jeden gatunek.");
+```
+
+---
+
+ # 10\. `toggleWatched`
+
+```
+const toggleWatched = (id: number) => {
+```
+
+ Funkcja zmienia status filmu:
+
+```
+obejrzany ↔ nieobejrzany
+```
+
+ Najpierw:
+
+```
+if (watchedMovies.includes(id)) {
+```
+
+ `includes()` sprawdza, czy dane ID znajduje się w tablicy.
+
+ Przykład:
+
+```
+watchedMovies = [1, 3, 5]
+```
+
+```
+watchedMovies.includes(3)
+```
+
+ wynik:
+
+```
+true
+```
+
+---
+
+ ## Usuwanie filmu z listy obejrzanych
+
+```
+setWatchedMovies((current) =>
+  current.filter((movieId) => movieId !== id)
+);
+```
+
+ `filter()` tworzy nową tablicę.
+
+ Przykład:
+
+```
+[1, 3, 5]
+```
+
+ Usuwamy `3`:
+
+```
+[1, 5]
+```
+
+---
+
+ ## Dodawanie filmu do listy obejrzanych
+
+```
+setWatchedMovies((current) => [...current, id]);
+```
+
+ `...current` kopiuje istniejące elementy.
+
+ Przykład:
+
+```
+current = [1, 3]
+id = 5
+```
+
+ wynik:
+
+```
+[1, 3, 5]
+```
+
+---
+
+ # 11\. `addMovie`
+
+```
+const addMovie = (event: SubmitEvent<HTMLFormElement>) => {
+```
+
+ Funkcja dodaje nowy film.
+
+---
+
+ ## `preventDefault()`
+
+```
+event.preventDefault();
+```
+
+ Blokuje domyślne zachowanie formularza.
+
+ Dzięki temu strona nie przeładowuje się po wysłaniu formularza.
+
+ Można powiedzieć:
+
+ > `preventDefault()` pozwala Reactowi samodzielnie obsłużyć formularz.
+
+---
+
+ # 12\. `trim()`
+
+```
+const movieTitle = title.trim();
+```
+
+ Usuwa spacje z początku i końca tekstu.
+
+ Przykład:
+
+```
+"   Matrix   "
+```
+
+ zmieni się na:
+
+```
+"Matrix"
+```
+
+---
+
+ # 13\. Przygotowanie gatunków
+
+```
+const movieGenres = genres
+  .map((genre) => genre.trim())
+  .filter(Boolean);
+```
+
+ Najpierw `map()` przechodzi po wszystkich gatunkach i usuwa spacje.
+
+ Przykład:
+
+```
+[" Sci-Fi ", " Akcja "]
+```
+
+ staje się:
+
+```
+["Sci-Fi", "Akcja"]
+```
+
+ Potem:
+
+```
+filter(Boolean)
+```
+
+ usuwa puste elementy.
+
+ Przykład:
+
+```
+["Sci-Fi", "", "Akcja"]
+```
+
+ staje się:
+
+```
+["Sci-Fi", "Akcja"]
+```
+
+---
+
+ # 14\. Walidacja formularza
+
+```
+if (!movieTitle || movieGenres.length === 0) {
+```
+
+ Sprawdzamy:
+
+ 1. czy tytuł jest pusty,
+2. czy nie podano żadnego gatunku.
+
+ Jeżeli warunek jest spełniony:
+
+```
+setFormError("Podaj tytuł filmu i co najmniej jeden gatunek.");
+return;
+```
+
+ `return` kończy działanie funkcji.
+
+ Film nie zostanie dodany.
+
+---
+
+ # 15\. Tworzenie ID filmu
+
+```
+const nextId =
+  Math.max(0, ...current.map((movie) => movie.id)) + 1;
+```
+
+ Najpierw:
+
+```
+current.map((movie) => movie.id)
+```
+
+ pobiera wszystkie ID.
+
+ Przykład:
+
+```
+[1, 2, 5, 8]
+```
+
+ Następnie:
+
+```
+Math.max(0, 1, 2, 5, 8)
+```
+
+ zwraca:
+
+```
+8
+```
+
+ Dodajemy `1`:
+
+```
+9
+```
+
+ Nowy film dostanie ID `9`.
+
+---
+
+ # 16\. Dodanie filmu
+
+```
+return [
+  ...current,
+  {
+    id: nextId,
+    title: movieTitle,
+    year: Number(year),
+    genre: movieGenres,
+  },
+];
+```
+
+ Tworzymy nową tablicę zawierającą:
+
+```
+stare filmy
++
+nowy film
+```
+
+ `Number(year)` zamienia rok z tekstu na liczbę.
+
+---
+
+ # 17\. Czyszczenie formularza
+
+ Po dodaniu filmu:
+
+```
+setTitle("");
+setYear("");
+setGenres([""]);
+setFormError("");
+```
+
+ Czyścimy wszystkie pola formularza.
+
+---
+
+ # 18\. `updateRating`
+
+```
+const updateRating = (id: number, rating: number) => {
+  setRatings((current) => ({ ...current, [id]: rating }));
+};
+```
+
+ Zmienia ocenę filmu.
+
+ Przykład:
+
+```
+current = {
+  1: 5,
+  2: 3
+}
+```
+
+ Wywołujemy:
+
+```
+updateRating(2, 4);
+```
+
+ Otrzymujemy:
+
+```
+{
+  1: 5,
+  2: 4
+}
+```
+
+---
+
+ # 19\. `resetMovieProgress`
+
+```
+const resetMovieProgress = () => {
+  setWatchedMovies([]);
+  setRatings({});
+};
+```
+
+ Czyści:
+
+ - listę obejrzanych filmów,
+- wszystkie oceny.
+
+ Nie usuwa filmów.
+
+---
+
+ # 20\. Filtrowanie filmów
+
+```
+const filteredMovies = movies.filter((movie) => {
+```
+
+ `filter()` tworzy nową tablicę filmów.
+
+---
+
+ ## Filtr „obejrzane”
+
+```
+if (filter === "watched") {
+  return watchedMovies.includes(movie.id);
+}
+```
+
+ Pokazuje tylko filmy, których ID znajduje się w `watchedMovies`.
+
+---
+
+ ## Filtr „nieobejrzane”
+
+```
+if (filter === "unwatched") {
+  return !watchedMovies.includes(movie.id);
+}
+```
+
+ `!` oznacza negację.
+
+ Czyli:
+
+ > pokaż filmy, których ID NIE znajduje się w `watchedMovies`.
+
+---
+
+ ## Filtr „wszystkie”
+
+```
+return true;
+```
+
+ Każdy film zostaje pokazany.
+
+---
+
+ # 21\. JSX
+
+```
+return (
+  <div className="app">
+```
+
+ JSX pozwala pisać strukturę interfejsu podobną do HTML wewnątrz Reacta.
+
+ Przykład:
+
+```
+<h1>Moja lista filmów</h1>
+```
+
+---
+
+ # 22\. `.length`
+
+```
+<h3>
+  Obejrzane: {watchedMovies.length} / {movies.length}
+</h3>
+```
+
+ `.length` mówi, ile elementów znajduje się w tablicy.
+
+ Jeżeli:
+
+```
+watchedMovies = [1, 2, 5]
+```
+
+ to:
+
+```
+watchedMovies.length
+```
+
+ wynosi:
+
+```
+3
+```
+
+ Jeżeli wszystkich filmów jest 8:
+
+```
+Obejrzane: 3 / 8
+```
+
+---
+
+ # 23\. Formularz
+
+```
+<form className="movie-form" onSubmit={addMovie}>
+```
+
+```
+onSubmit={addMovie}
+```
+
+ oznacza:
+
+ > Po wysłaniu formularza uruchom funkcję `addMovie`.
+
+---
+
+ # 24\. Controlled input
+
+ Przykład:
+
+```
+<input
+  type="text"
+  value={title}
+  onChange={(event) => {
+    setTitle(event.target.value);
+    setFormError("");
+  }}
+  required
+/>
+```
+
+ Jest to **controlled input**.
+
+ Wartość inputa jest kontrolowana przez stan Reacta.
+
+```
+value={title}
+```
+
+ pobiera wartość ze stanu.
+
+```
+onChange
+```
+
+ reaguje na wpisywanie.
+
+```
+setTitle(event.target.value);
+```
+
+ zapisuje nową wartość do stanu.
+
+ Schemat:
+
+```
+użytkownik wpisuje tekst
+        ↓
+onChange
+        ↓
+setTitle(...)
+        ↓
+zmiana state
+        ↓
+React renderuje ponownie
+```
+
+---
+
+ # 25\. Input roku
+
+```
+<input
+  type="number"
+  min="1888"
+  step="1"
+  value={year}
+  onChange={(event) => setYear(event.target.value)}
+  required
+/>
+```
+
+ ### `type="number"`
+
+ Pole liczbowe.
+
+ ### `min="1888"`
+
+ Minimalna wartość to 1888.
+
+ ### `step="1"`
+
+ Wartość zwiększa się co 1.
+
+ ### `value={year}`
+
+ Wartość pochodzi ze stanu.
+
+ ### `onChange`
+
+ Aktualizuje stan po wpisaniu wartości.
+
+ ### `required`
+
+ Pole jest wymagane.
+
+---
+
+ # 26\. Dynamiczne gatunki
+
+```
+{genres.map((genre, index) => (
+```
+
+ Dla każdego elementu tablicy `genres` tworzony jest input.
+
+ Przykład:
+
+```
+genres = ["Sci-Fi", "Akcja"]
+```
+
+ spowoduje utworzenie dwóch pól.
+
+---
+
+ # 27\. `key`
+
+```
+key={index}
+```
+
+ `key` pomaga Reactowi identyfikować elementy podczas renderowania listy.
+
+ `index` oznacza numer elementu:
+
+```
+Sci-Fi → 0
+Akcja → 1
+Dramat → 2
+```
+
+---
+
+ # 28\. Aktualizacja gatunku
+
+```
+const updatedGenres = [...genres];
+updatedGenres[index] = event.target.value;
+setGenres(updatedGenres);
+```
+
+ Najpierw tworzymy kopię tablicy.
+
+ Przykład:
+
+```
+["Sci-Fi", "Akcja"]
+```
+
+ Następnie zmieniamy konkretny element.
+
+ Jeżeli `index = 1`:
+
+```
+["Sci-Fi", "Dramat"]
+```
+
+ Na końcu:
+
+```
+setGenres(updatedGenres);
+```
+
+ zapisujemy nową tablicę do stanu.
+
+---
+
+ # 29\. Dodawanie kolejnego gatunku
+
+```
+{index === genres.length - 1 && (
+```
+
+ Oznacza:
+
+ > Jeżeli jesteśmy przy ostatnim gatunku, pokaż przycisk `+`.
+
+ Po kliknięciu:
+
+```
+setGenres((current) => [...current, ""])
+```
+
+ dodajemy pusty element.
+
+ Przykład:
+
+```
+["Sci-Fi"]
+```
+
+ zmienia się na:
+
+```
+["Sci-Fi", ""]
+```
+
+ React wyświetli nowe pole.
+
+---
+
+ # 30\. Warunkowe renderowanie
+
+```
+{formError && (
+  <p className="form-error">
+    {formError}
+  </p>
+)}
+```
+
+ Jeżeli `formError` jest pusty:
+
+```
+""
+```
+
+ komunikat się nie pojawi.
+
+ Jeżeli:
+
+```
+"Podaj tytuł filmu..."
+```
+
+ komunikat zostanie wyświetlony.
+
+ Jest to przykład **warunkowego renderowania**.
+
+---
+
+ # 31\. Filtry
+
+```
+<button onClick={() => setFilter("all")}>
+```
+
+ Kliknięcie ustawia:
+
+```
+filter = "all"
+```
+
+---
+
+```
+<button onClick={() => setFilter("watched")}>
+```
+
+ Ustawia:
+
+```
+filter = "watched"
+```
+
+---
+
+```
+<button onClick={() => setFilter("unwatched")}>
+```
+
+ Ustawia:
+
+```
+filter = "unwatched"
+```
+
+ Po zmianie stanu React ponownie renderuje komponent.
+
+---
+
+ # 32\. Wyświetlanie filmów
+
+```
+{filteredMovies.map((movie) => (
+  <MovieCard
+```
+
+ Dla każdego filmu tworzony jest komponent:
+
+```
+<MovieCard />
+```
+
+ Jeżeli mamy 8 filmów, powstanie 8 komponentów `MovieCard`.
+
+---
+
+ # 33\. Props
+
+```
+<MovieCard
+  key={movie.id}
+  title={movie.title}
+  year={movie.year}
+  genre={movie.genre}
+  rating={ratings[movie.id] ?? 0}
+  watched={watchedMovies.includes(movie.id)}
+  onToggle={() => toggleWatched(movie.id)}
+  onRate={(rating) => updateRating(movie.id, rating)}
+/>
+```
+
+ Do `MovieCard` przekazujemy dane.
+
+ Są to **propsy**.
+
+ Schemat:
+
+```
+App
+ |
+ | title
+ | year
+ | genre
+ | rating
+ | watched
+ | onToggle
+ | onRate
+ ↓
+MovieCard
+```
+
+---
+
+ # 34\. `??`
+
+```
+rating={ratings[movie.id] ?? 0}
+```
+
+ Sprawdzamy ocenę filmu.
+
+ Jeśli film ma ocenę:
+
+```
+5
+```
+
+ przekazujemy `5`.
+
+ Jeżeli oceny nie ma i jest `undefined`:
+
+```
+?? 0
+```
+
+ ustawia wartość `0`.
+
+ Czyli:
+
+```
+jest ocena → użyj oceny
+brak oceny → użyj 0
+```
+
+ `??` to operator **nullish coalescing**.
+
+---
+
+ # 35\. `watched`
+
+```
+watched={watchedMovies.includes(movie.id)}
+```
+
+ Sprawdzamy, czy film jest obejrzany.
+
+ Wynik to:
+
+```
+true
+```
+
+ albo:
+
+```
+false
+```
+
+---
+
+ # 36\. Callback `onToggle`
+
+```
+onToggle={() => toggleWatched(movie.id)}
+```
+
+ Przekazujemy funkcję do `MovieCard`.
+
+ Kiedy użytkownik kliknie przycisk w `MovieCard`, zostanie wykonane:
+
+```
+toggleWatched(movie.id)
+```
+
+ Czyli `MovieCard` może poinformować `App`:
+
+ > Użytkownik zmienił status filmu.
+
+---
+
+ # 37\. Callback `onRate`
+
+```
+onRate={(rating) => updateRating(movie.id, rating)}
+```
+
+ Podobnie działa ocena.
+
+ Jeżeli użytkownik kliknie 4 gwiazdki:
+
+```
+onRate(4)
+```
+
+ a następnie w `App`:
+
+```
+updateRating(movie.id, 4)
+```
+
+ zapisujemy ocenę.
+
+---
+
+ # 38\. `MovieCardProps`
+
+```
+type MovieCardProps = {
+  title: string;
+  year: number;
+  genre: string[];
+  rating: number;
+  watched: boolean;
+  onToggle: () => void;
+  onRate: (rating: number) => void;
+};
+```
+
+ Definiuje typ propsów komponentu `MovieCard`.
+
+ Czyli `MovieCard` otrzymuje:
+
+```
+title    → string
+year     → number
+genre    → string[]
+rating   → number
+watched   → boolean
+onToggle → funkcja
+onRate   → funkcja
+```
+
+---
+
+ # 39\. Destrukturyzacja propsów
+
+```
+function MovieCard({
+  title,
+  year,
+  genre,
+  rating,
+  watched,
+  onToggle,
+  onRate
+}: MovieCardProps) {
+```
+
+ Zamiast pisać:
+
+```
+props.title
+props.year
+props.genre
+```
+
+ od razu otrzymujemy:
+
+```
+title
+year
+genre
+```
+
+ Jest to **destrukturyzacja**.
+
+---
+
+ # 40\. `className` zależny od stanu
+
+```
+<div className={watched ? "movie-card watched" : "movie-card"}>
+```
+
+ To jest operator ternarny.
+
+ Schemat:
+
+```
+warunek ? jeśli prawda : jeśli fałsz
+```
+
+ Czyli:
+
+```
+watched
+  ? "movie-card watched"
+  : "movie-card"
+```
+
+ Jeżeli film jest obejrzany:
+
+```
+movie-card watched
+```
+
+ Jeżeli nie:
+
+```
+movie-card
+```
+
+ Dzięki temu CSS może inaczej wyglądać dla obejrzanych filmów.
+
+---
+
+ # 41\. `join()`
+
+```
+<p>Gatunek: {genre.join(", ")}</p>
+```
+
+ Jeżeli mamy:
+
+```
+["Dramat", "Akcja"]
+```
+
+ to:
+
+```
+genre.join(", ")
+```
+
+ daje:
+
+```
+Dramat, Akcja
+```
+
+ `join()` łączy elementy tablicy w jeden tekst.
+
+---
+
+ # 42\. Tworzenie gwiazdek
+
+```
+{[1, 2, 3, 4, 5].map((value) => (
+```
+
+ Tworzymy 5 gwiazdek.
+
+ Tablica:
+
+```
+[1, 2, 3, 4, 5]
+```
+
+ jest używana przez `map()`.
+
+---
+
+ # 43\. Wybrana gwiazdka
+
+```
+className={
+  value <= rating
+    ? "star-button selected"
+    : "star-button"
+}
+```
+
+ Jeśli ocena wynosi `3`:
+
+```
+1 <= 3 → tak
+2 <= 3 → tak
+3 <= 3 → tak
+4 <= 3 → nie
+5 <= 3 → nie
+```
+
+ Efekt:
+
+```
+★★★☆☆
+```
+
+---
+
+ # 44\. Kliknięcie gwiazdki
+
+```
+onClick={() => onRate(value)}
+```
+
+ Jeżeli użytkownik kliknie czwartą gwiazdkę:
+
+```
+onRate(4)
+```
+
+ Następnie funkcja przekazana z `App` aktualizuje ocenę.
+
+---
+
+ # 45\. Wyświetlanie symbolu gwiazdki
+
+```
+{value <= rating ? "★" : "☆"}
+```
+
+ Jeśli gwiazdka jest wybrana:
+
+```
+★
+```
+
+ Jeżeli nie:
+
+```
+☆
+```
+
+---
+
+ # 46\. Wyświetlanie oceny
+
+```
+{rating > 0 ? `${rating}/5` : "Brak oceny"}
+```
+
+ Jeżeli:
+
+```
+rating = 4
+```
+
+ wyświetli:
+
+```
+4/5
+```
+
+ Jeżeli:
+
+```
+rating = 0
+```
+
+ wyświetli:
+
+```
+Brak oceny
+```
+
+ To również jest operator ternarny.
+
+---
+
+ # 47\. Przycisk obejrzenia
+
+```
+<button type="button" onClick={onToggle}>
+```
+
+ Po kliknięciu uruchamiamy:
+
+```
+onToggle()
+```
+
+ Funkcja pochodzi z komponentu `App`.
+
+---
+
+ # 48\. Tekst przycisku
+
+```
+{watched
+  ? "✓ Obejrzany"
+  : "Oznacz jako obejrzany"}
+```
+
+ Jeżeli:
+
+```
+watched = true
+```
+
+ pokazuje:
+
+```
+✓ Obejrzany
+```
+
+ Jeżeli:
+
+```
+watched = false
+```
+
+ pokazuje:
+
+```
+Oznacz jako obejrzany
+```
+
+---
+
+ # 49\. Najważniejsze metody tablic
+
+ ## `map()`
+
+ Przechodzi po elementach i tworzy nową tablicę.
+
+```
+[1, 2, 3].map(x => x * 2)
+```
+
+ wynik:
+
+```
+[2, 4, 6]
+```
+
+ W projekcie:
+
+```
+movies.map(...)
+```
+
+ tworzy komponent `MovieCard` dla każdego filmu.
+
+---
+
+ ## `filter()`
+
+ Wybiera elementy spełniające warunek.
+
+```
+[1, 2, 3, 4].filter(x => x > 2)
+```
+
+ wynik:
+
+```
+[3, 4]
+```
+
+ W projekcie służy między innymi do filtrowania filmów.
+
+---
+
+ ## `includes()`
+
+ Sprawdza, czy element znajduje się w tablicy.
+
+```
+[1, 2, 3].includes(2)
+```
+
+ wynik:
+
+```
+true
+```
+
+---
+
+ ## `join()`
+
+ Łączy elementy tablicy w tekst.
+
+```
+["Dramat", "Akcja"].join(", ")
+```
+
+ wynik:
+
+```
+"Dramat, Akcja"
+```
+
+---
+
+ ## `length`
+
+ Zwraca liczbę elementów.
+
+```
+[1, 2, 3].length
+```
+
+ wynik:
+
+```
+3
+```
+
+---
+
+ # 50\. Spread operator `...`
+
+ ## Tablice
+
+```
+const newArray = [...oldArray, newElement];
+```
+
+ Tworzy nową tablicę.
+
+ Przykład:
+
+```
+const oldArray = [1, 2];
+const newArray = [...oldArray, 3];
+```
+
+ wynik:
+
+```
+[1, 2, 3]
+```
+
+---
+
+ ## Obiekty
+
+```
+{
+  ...current,
+  [id]: rating
+}
+```
+
+ Kopiuje właściwości starego obiektu i zmienia/dodaje wartość dla danego ID.
+
+---
+
+ # 51\. Operator ternarny `? :`
+
+ Schemat:
+
+```
+warunek ? wartośćJeśliPrawda : wartośćJeśliFałsz
+```
+
+ Przykład:
+
+```
+watched ? "Obejrzany" : "Nieobejrzany"
+```
+
+ Jeżeli `watched` jest `true`:
+
+```
+Obejrzany
+```
+
+ Jeżeli `false`:
+
+```
+Nieobejrzany
+```
+
+---
+
+ # 52\. Operator `&&`
+
+ Przykład:
+
+```
+{formError && <p>{formError}</p>}
+```
+
+ Oznacza:
+
+ > Jeżeli `formError` istnieje, pokaż `<p>`.
+
+ Czyli jest to sposób na warunkowe renderowanie.
+
+---
+
+ # 53\. Operator `!`
+
+```
+!watchedMovies.includes(movie.id)
+```
+
+ `!` oznacza negację.
+
+ Jeżeli:
+
+```
+watchedMovies.includes(movie.id)
+```
+
+ daje:
+
+```
+true
+```
+
+ to:
+
+```
+!true
+```
+
+ daje:
+
+```
+false
+```
+
+ Czyli:
+
+ > film nie znajduje się na liście obejrzanych.
+
+---
+
+ # 54\. Najważniejszy przepływ danych
+
+ Cała aplikacja działa mniej więcej tak:
+
+```
+                         App
+                          |
+                    przechowuje STATE
+                          |
+          ┌───────────────┴───────────────┐
+          ↓                               ↓
+        movies                         ratings
+          |                               |
+          └───────────────┬───────────────┘
+                          ↓
+                     MovieCard
+                          |
+                   użytkownik klika
+                          |
+                 ┌────────┴────────┐
+                 ↓                 ↓
+             onToggle            onRate
+                 |                 |
+                 └────────┬────────┘
+                          ↓
+                         App
+                          |
+                     zmiana state
+                          |
+                          ↓
+                  ponowne renderowanie
+```
+
+ Najważniejsze:
+
+ > `App` posiada stan, `MovieCard` otrzymuje dane przez propsy, a funkcje `onToggle` i `onRate` pozwalają dziecku poinformować rodzica o działaniach użytkownika.
+
+---
+
+ # 55\. Co to jest state?
+
+ **State** to dane komponentu, które mogą się zmieniać.
+
+ Przykłady w projekcie:
+
+```
+movies
+watchedMovies
+ratings
+filter
+title
+year
+genres
+formError
+```
+
+ Zmiana state powoduje ponowne renderowanie komponentu.
+
+---
+
+ # 56\. Co to są propsy?
+
+ **Props** to dane przekazywane z komponentu rodzica do komponentu dziecka.
+
+ Tutaj:
+
+```
+App
+ ↓
+MovieCard
+```
+
+ Przykłady propsów:
+
+```
+title
+year
+genre
+rating
+watched
+onToggle
+onRate
+```
+
+---
+
+ # 57\. Co to jest callback?
+
+ Callback to funkcja przekazana do innej funkcji lub komponentu.
+
+ Tutaj:
+
+```
+onToggle={() => toggleWatched(movie.id)}
+```
+
+ oraz:
+
+```
+onRate={(rating) => updateRating(movie.id, rating)}
+```
+
+ `MovieCard` może wywołać te funkcje, a wtedy zmieni się stan w `App`.
+
+---
+
+ # 58\. Controlled input
+
+ Input jest kontrolowany przez Reacta, gdy jego wartość pochodzi ze state.
+
+ Przykład:
+
+```
+<input
+  value={title}
+  onChange={(event) => setTitle(event.target.value)}
+/>
+```
+
+ Schemat:
+
+```
+użytkownik wpisuje
+       ↓
+    onChange
+       ↓
+  setTitle(...)
+       ↓
+     state
+       ↓
+  React renderuje
+```
+
+---
+
+ # 59\. Najczęstsze pytania na zaliczeniu
+
+ ### Co robi `useState`?
+
+ > `useState` pozwala przechowywać dane, które mogą zmieniać się podczas działania komponentu. Po zmianie stanu React ponownie renderuje komponent.
+
+ ### Co robi `setTitle`?
+
+ > Aktualizuje stan `title`.
+
+ ### Co robi `map()`?
+
+ > Przechodzi po elementach tablicy i tworzy na ich podstawie nową tablicę.
+
+ ### Co robi `filter()`?
+
+ > Tworzy nową tablicę zawierającą tylko elementy spełniające określony warunek.
+
+ ### Co robi `includes()`?
+
+ > Sprawdza, czy dana wartość znajduje się w tablicy. Zwraca `true` lub `false`.
+
+ ### Co robi `join()`?
+
+ > Łączy elementy tablicy w jeden tekst.
+
+ ### Co oznacza `...`?
+
+ > Jest to spread operator. Pozwala skopiować elementy tablicy lub właściwości obiektu.
+
+ ### Co robi `preventDefault()`?
+
+ > Blokuje domyślne zachowanie formularza, np. przeładowanie strony.
+
+ ### Co robi `trim()`?
+
+ > Usuwa spacje z początku i końca tekstu.
+
+ ### Co robi `Number(year)`?
+
+ > Zamienia tekst na liczbę.
+
+ ### Co oznacza `?? 0`?
+
+ > Jeżeli wartość po lewej stronie jest `null` lub `undefined`, używana jest wartość `0`.
+
+ ### Co to są propsy?
+
+ > Dane przekazywane z komponentu rodzica do komponentu dziecka.
+
+ ### Co to jest `MovieCard`?
+
+ > Jest to komponent odpowiedzialny za wyświetlanie pojedynczego filmu.
+
+ ### Co robi `key`?
+
+ > Pozwala Reactowi identyfikować elementy podczas renderowania listy.
+
+ ### Co robi `onClick`?
+
+ > Określa funkcję, która zostanie wykonana po kliknięciu.
+
+ ### Co robi `onChange`?
+
+ > Reaguje na zmianę wartości inputa.
+
+ ### Co robi `onSubmit`?
+
+ > Reaguje na wysłanie formularza.
+
+ ### Co robi `required`?
+
+ > Oznacza, że pole formularza jest wymagane.
+
+ ### Co robi operator `? :`?
+
+ > Jest to operator ternarny, który pozwala wybrać jedną z dwóch wartości w zależności od warunku.
+
+ ### Co robi `&&` w JSX?
+
+ > Pozwala warunkowo wyświetlić element.
+
+---
+
+ # 60\. Najważniejsze rzeczy do zapamiętania
+
+ Jeżeli masz mało czasu, zapamiętaj te 10 rzeczy:
+
+ 1. **`useState`** — przechowuje zmienne dane.
+2. **`set...`** — zmienia state.
+3. **`map()`** — tworzy elementy na podstawie tablicy.
+4. **`filter()`** — wybiera elementy spełniające warunek.
+5. **`includes()`** — sprawdza, czy element znajduje się w tablicy.
+6. **`...`** — kopiuje tablicę lub obiekt.
+7. **Props** — dane przekazywane z rodzica do dziecka.
+8. **Callback** — funkcja przekazana do komponentu.
+9. **`onChange`** — reaguje na zmianę inputa.
+10. **`onClick`** — reaguje na kliknięcie.
+
+---
+
+ # 61\. Odpowiedź o całym projekcie — wersja na zaliczenie
+
+ > Jest to aplikacja React napisana w TypeScript do zarządzania listą filmów. Głównym komponentem jest `App`, który przechowuje stan aplikacji za pomocą `useState`. Przechowuję tam listę filmów, obejrzane filmy, oceny, filtr oraz dane formularza.
+>
+>  Filmy są początkowo pobierane z pliku JSON. Użytkownik może dodać nowy film za pomocą formularza. Dane z formularza są przechowywane w state, a po wysłaniu filmu dodaję do listy.
+>
+>  Lista filmów jest filtrowana za pomocą `filter()`. Do sprawdzania, czy film został obejrzany, używam `includes()`.
+>
+>  Każdy film jest wyświetlany przez komponent `MovieCard`. `App` przekazuje do niego dane przez propsy, takie jak tytuł, rok, gatunki, ocena i informacja, czy film został obejrzany.
+>
+>  `MovieCard` przekazuje natomiast informacje o kliknięciach do `App` za pomocą funkcji `onToggle` i `onRate`. Dzięki zmianie state React ponownie renderuje interfejs i pokazuje aktualne dane.
+
+---
+
+ # 62\. Jedno zdanie do zapamiętania
+
+ > **App przechowuje stan aplikacji, przekazuje dane do MovieCard przez propsy, a MovieCard wyświetla film i używa callbacków, żeby poinformować App o działaniach użytkownika.**
